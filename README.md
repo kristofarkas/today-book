@@ -1,4 +1,4 @@
-# today-book
+# Reading Summit
 
 An App to track reading using React.
 
