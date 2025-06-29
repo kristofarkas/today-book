@@ -269,37 +269,49 @@ const ReadingTracker = () => {
         
         <h1 className="text-2xl font-bold text-gray-800 mb-6">{book.title}</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="md:col-span-2 space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="text-blue-600" size={20} />
-                <h3 className="font-semibold text-blue-800">Today's Goal</h3>
-              </div>
-              <p className="text-xl font-bold text-blue-600">Read up to page {todaysTarget}</p>
-              <p className="text-sm text-blue-700">That's {dailyGoal} more pages today</p>
+        <div className="space-y-6 mb-6">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="text-blue-600" size={20} />
+              <h3 className="font-semibold text-blue-800">Today's Goal</h3>
             </div>
-            
+            <p className="text-xl font-bold text-blue-600">Read up to page {todaysTarget}</p>
+            <p className="text-sm text-blue-700">That's {Math.max(0, todaysTarget - book.currentPage)} more pages today</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-green-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="text-green-600" size={20} />
                 <h3 className="font-semibold text-green-800">Overall Progress</h3>
               </div>
-              <p className="text-xl font-bold text-green-600">{Math.round(progress)}%</p>
-              <p className="text-sm text-green-700">{book.currentPage} of {book.totalPages} pages</p>
-            </div>
-            
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="text-orange-600" size={20} />
-                <h3 className="font-semibold text-orange-800">Today's Progress</h3>
+              <p className="text-xl font-bold text-green-600">{Math.round(Math.min(100, progress))}%</p>
+              <p className="text-sm text-green-700 mb-2">{book.currentPage} of {book.totalPages} pages</p>
+              <div className="w-full bg-green-200 h-2 rounded-full">
+                <div
+                  className="bg-green-600 h-2 rounded-full"
+                  style={{ width: `${Math.min(100, progress)}%` }}
+                ></div>
               </div>
-              <p className="text-xl font-bold text-orange-600">{Math.round(todaysProgress)}%</p>
-              <p className="text-sm text-orange-700">Pages {todaysStart + 1}-{todaysTarget} ({todaysCompleted} of {todaysGoal})</p>
+            </div>
+
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="text-purple-600" size={20} />
+                <h3 className="font-semibold text-purple-800">Today's Progress</h3>
+              </div>
+              <p className="text-xl font-bold text-purple-600">{Math.round(Math.min(100, todaysProgress))}%</p>
+              <p className="text-sm text-purple-700 mb-2">Pages {todaysStart + 1}-{todaysTarget} ({todaysCompleted} of {todaysGoal})</p>
+              <div className="w-full bg-purple-200 h-2 rounded-full">
+                <div
+                  className="bg-purple-600 h-2 rounded-full"
+                  style={{ width: `${Math.min(100, todaysProgress)}%` }}
+                ></div>
+              </div>
             </div>
           </div>
-          
-          <div className="space-y-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">Current Page</label>
@@ -337,7 +349,6 @@ const ReadingTracker = () => {
                 </div>
               )}
             </div>
-            
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">Yesterday's Page</label>
