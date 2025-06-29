@@ -414,7 +414,7 @@ const ReadingTracker = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
             <BookOpen className="text-blue-600" />
-            Reading Summit <span role="img" aria-label="mountain">🏔️</span>
+            Reading Summit
           </h1>
           <button
             onClick={() => setShowAddBook(true)}
