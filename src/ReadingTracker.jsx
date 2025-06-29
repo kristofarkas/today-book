@@ -8,6 +8,24 @@ const ReadingTracker = () => {
   const [showAddBook, setShowAddBook] = useState(false);
   const [editingYesterday, setEditingYesterday] = useState(false);
 
+  // Load saved books from localStorage on first render
+  useEffect(() => {
+    const stored = localStorage.getItem('reading-tracker-books');
+    if (stored) {
+      try {
+        setBooks(JSON.parse(stored));
+      } catch {
+        // ignore parsing errors and start fresh
+        setBooks([]);
+      }
+    }
+  }, []);
+
+  // Persist books whenever they change
+  useEffect(() => {
+    localStorage.setItem('reading-tracker-books', JSON.stringify(books));
+  }, [books]);
+
   const addBook = (title, totalPages, targetDays) => {
     const newBook = {
       id: Date.now(),
