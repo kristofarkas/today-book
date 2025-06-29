@@ -171,8 +171,8 @@ const ReadingTracker = () => {
     const progress = book.totalPages > 0 ? (book.currentPage / book.totalPages) * 100 : 0;
     
     return (
-      <div 
-        className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+      <div
+        className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
         onClick={() => {
           setSelectedBook(book);
           setCurrentView('detail');
@@ -410,11 +410,11 @@ const ReadingTracker = () => {
     const wantToReadBooks = books.filter(book => book.status === 'want-to-read');
 
     return (
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="max-w-6xl mx-auto p-4 bg-white rounded-lg shadow-lg border border-gray-200">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
             <BookOpen className="text-blue-600" />
-            Reading Tracker
+            Reading Summit <span role="img" aria-label="mountain">🏔️</span>
           </h1>
           <button
             onClick={() => setShowAddBook(true)}
@@ -467,7 +467,7 @@ const ReadingTracker = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-gray-50 to-blue-50">
       {currentView === 'dashboard' && <Dashboard />}
       {currentView === 'detail' && selectedBook && <BookDetail book={books.find(b => b.id === selectedBook.id) || selectedBook} />}
       {showAddBook && <AddBookForm />}
