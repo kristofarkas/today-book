@@ -10,7 +10,8 @@ const ReadingTracker = () => {
     startReading,
     updateCurrentPage,
     updateYesterdayPage,
-    deleteBook
+    deleteBook,
+    updateTitle
   } = useBookStorage();
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedBook, setSelectedBook] = useState(null);
@@ -156,12 +157,15 @@ const ReadingTracker = () => {
     const [tempYesterdayPage, setTempYesterdayPage] = useState(getYesterdayPage(book));
     const [editingCurrentPage, setEditingCurrentPage] = useState(false);
     const [tempCurrentPageInput, setTempCurrentPageInput] = useState(book.currentPage.toString());
+    const [editingTitle, setEditingTitle] = useState(false);
+    const [tempTitle, setTempTitle] = useState(book.title);
     
     // Update temp values when book data changes
     useEffect(() => {
       setTempYesterdayPage(getYesterdayPage(book));
       setTempCurrentPageInput(book.currentPage.toString());
-    }, [book.currentPage, book.dailyProgress]);
+      setTempTitle(book.title);
+    }, [book.currentPage, book.dailyProgress, book.title]);
     
     const dailyGoal = calculateDailyGoal(book);
     const todaysTarget = getTodaysTarget(book);
@@ -193,7 +197,39 @@ const ReadingTracker = () => {
           ← Back to Dashboard
         </button>
         
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">{book.title}</h1>
+        <div className="flex items-start justify-between mb-6">
+          {editingTitle ? (
+            <div className="flex-1 flex gap-2">
+              <input
+                type="text"
+                value={tempTitle}
+                onChange={(e) => setTempTitle(e.target.value)}
+                className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                onClick={() => {
+                  updateTitle(book.id, tempTitle);
+                  setEditingTitle(false);
+                }}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+              >
+                <Save size={16} />
+              </button>
+            </div>
+          ) : (
+            <h1 className="text-2xl font-bold text-gray-800 flex-1">
+              {book.title}
+            </h1>
+          )}
+          {!editingTitle && (
+            <button
+              onClick={() => setEditingTitle(true)}
+              className="text-blue-600 hover:text-blue-800 ml-2"
+            >
+              <Edit3 size={16} />
+            </button>
+          )}
+        </div>
         
         <div className="space-y-6 mb-6">
           <div className="bg-blue-50 p-4 rounded-lg">

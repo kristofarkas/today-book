@@ -79,6 +79,10 @@ export function useBookStorage() {
     updateBook(bookId, { currentPage: page, status, dailyProgress });
   };
 
+  const updateTitle = (bookId, newTitle) => {
+    updateBook(bookId, { title: newTitle });
+  };
+
   const updateYesterdayPage = (bookId, newPage) => {
     const book = books.find(b => b.id === bookId);
     if (!book) return;
@@ -97,7 +101,8 @@ export function useBookStorage() {
     startReading,
     updateCurrentPage,
     updateYesterdayPage,
-    deleteBook
+    deleteBook,
+    updateTitle
   };
 }
 
