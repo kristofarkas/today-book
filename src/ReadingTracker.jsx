@@ -23,15 +23,29 @@ const ReadingTracker = () => {
     const [title, setTitle] = useState('');
     const [totalPages, setTotalPages] = useState('');
     const [targetDays, setTargetDays] = useState('');
+    const [error, setError] = useState('');
 
     const handleSubmit = () => {
-      if (title && totalPages && targetDays) {
-        addBook(title, totalPages, targetDays);
-        setTitle('');
-        setTotalPages('');
-        setTargetDays('');
-        setShowAddBook(false);
+      const pages = Number(totalPages);
+      const days = Number(targetDays);
+
+      if (
+        !title ||
+        !Number.isInteger(pages) ||
+        pages <= 0 ||
+        !Number.isInteger(days) ||
+        days <= 0
+      ) {
+        setError('Page count and days to read must be positive integers.');
+        return;
       }
+
+      addBook(title, pages, days);
+      setTitle('');
+      setTotalPages('');
+      setTargetDays('');
+      setShowAddBook(false);
+      setError('');
     };
 
     return (
@@ -74,6 +88,7 @@ const ReadingTracker = () => {
                 required
               />
             </div>
+            {error && <p className="text-red-600 text-sm">{error}</p>}
             <div className="flex gap-2 pt-2">
               <button
                 onClick={handleSubmit}
