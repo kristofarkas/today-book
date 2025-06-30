@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X } from 'lucide-react';
+import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X, Info } from 'lucide-react';
 import { useBookStorage } from './bookStorage.js';
 import { calculateDailyGoal, getTodaysTarget, getYesterdayPage } from './bookMetrics.js';
 
@@ -174,6 +174,7 @@ const ReadingTracker = () => {
     const [tempCurrentPageInput, setTempCurrentPageInput] = useState(book.currentPage.toString());
     const [editingTitle, setEditingTitle] = useState(false);
     const [tempTitle, setTempTitle] = useState(book.title);
+    const [showYesterdayInfo, setShowYesterdayInfo] = useState(false);
     
     // Update temp values when book data changes
     useEffect(() => {
@@ -327,23 +328,38 @@ const ReadingTracker = () => {
               )}
             </div>
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">Yesterday's Page</label>
+              <div className="flex items-center justify-between mb-2 relative">
+                <div className="flex items-center gap-1">
+                  <label className="block text-xs font-medium text-gray-600">Yesterday's Page</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowYesterdayInfo(!showYesterdayInfo)}
+                    className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    <Info size={14} />
+                  </button>
+                </div>
                 <button
                   onClick={() => setEditingYesterday(!editingYesterday)}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-gray-500 hover:text-gray-700"
                 >
                   <Edit3 size={16} />
                 </button>
+
+                {showYesterdayInfo && (
+                  <div className="absolute left-0 top-full mt-1 w-60 bg-white border border-gray-300 rounded-md shadow text-xs text-gray-700 p-2 z-10">
+                    Automatically updated from your last entry. Change it if you missed updating yesterday.
+                  </div>
+                )}
               </div>
-              
+
               {editingYesterday ? (
                 <div className="flex gap-2">
                   <input
                     type="number"
                     value={tempYesterdayPage}
                     onChange={(e) => setTempYesterdayPage(e.target.value)}
-                    className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     min="0"
                     max={book.totalPages}
                   />
@@ -352,14 +368,14 @@ const ReadingTracker = () => {
                       updateYesterdayPage(book.id, tempYesterdayPage);
                       setEditingYesterday(false);
                     }}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                    className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-600 transition-colors"
                   >
                     <Save size={16} />
                   </button>
                 </div>
               ) : (
                 <div className="p-2 bg-gray-100 rounded-md">
-                  <span className="text-gray-800">Page {getYesterdayPage(book)}</span>
+                  <span className="text-sm text-gray-600">Page {getYesterdayPage(book)}</span>
                 </div>
               )}
             </div>
