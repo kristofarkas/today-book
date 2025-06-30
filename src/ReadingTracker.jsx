@@ -330,7 +330,7 @@ const ReadingTracker = () => {
             <div>
               <div className="flex items-center justify-between mb-2 relative">
                 <div className="flex items-center gap-1">
-                  <label className="block text-xs font-medium text-gray-600">Yesterday's Page</label>
+                  <label className="block text-sm font-medium text-gray-600">Yesterday's Page</label>
                   <button
                     type="button"
                     onClick={() => setShowYesterdayInfo(!showYesterdayInfo)}
