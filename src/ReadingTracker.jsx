@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X } from 'lucide-react';
 import { useBookStorage } from './bookStorage.js';
-import { calculateDailyGoal, getTodaysTarget } from './bookMetrics.js';
+import { calculateDailyGoal, getTodaysTarget, getYesterdayPage } from './bookMetrics.js';
 
 const ReadingTracker = () => {
   const {
@@ -153,15 +153,15 @@ const ReadingTracker = () => {
   };
 
   const BookDetail = ({ book }) => {
-    const [tempYesterdayPage, setTempYesterdayPage] = useState(book.yesterdayPage);
+    const [tempYesterdayPage, setTempYesterdayPage] = useState(getYesterdayPage(book));
     const [editingCurrentPage, setEditingCurrentPage] = useState(false);
     const [tempCurrentPageInput, setTempCurrentPageInput] = useState(book.currentPage.toString());
     
     // Update temp values when book data changes
     useEffect(() => {
-      setTempYesterdayPage(book.yesterdayPage);
+      setTempYesterdayPage(getYesterdayPage(book));
       setTempCurrentPageInput(book.currentPage.toString());
-    }, [book.currentPage, book.yesterdayPage]);
+    }, [book.currentPage, book.dailyProgress]);
     
     const dailyGoal = calculateDailyGoal(book);
     const todaysTarget = getTodaysTarget(book);
@@ -170,7 +170,7 @@ const ReadingTracker = () => {
     const progress = book.totalPages > 0 ? (book.currentPage / book.totalPages) * 100 : 0;
     
     // Calculate today's progress
-    const todaysStart = book.yesterdayPage;
+    const todaysStart = getYesterdayPage(book);
     const todaysGoal = dailyGoal;
     const todaysCompleted = Math.max(0, book.currentPage - todaysStart);
     const todaysProgress = todaysGoal > 0 ? (todaysCompleted / todaysGoal) * 100 : 0;
@@ -308,7 +308,7 @@ const ReadingTracker = () => {
                 </div>
               ) : (
                 <div className="p-2 bg-gray-100 rounded-md">
-                  <span className="text-gray-800">Page {book.yesterdayPage}</span>
+                  <span className="text-gray-800">Page {getYesterdayPage(book)}</span>
                 </div>
               )}
             </div>

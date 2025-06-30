@@ -27,7 +27,6 @@ export function useBookStorage() {
       totalPages: parseInt(totalPages),
       targetDays: parseInt(targetDays),
       currentPage: 0,
-      yesterdayPage: 0,
       status: 'want-to-read',
       startDate: null,
       targetDate: null,
@@ -58,20 +57,38 @@ export function useBookStorage() {
     });
   };
 
+  const recordProgress = (book, dateStr, page) => {
+    const progress = book.dailyProgress ? [...book.dailyProgress] : [];
+    const idx = progress.findIndex(p => p.date === dateStr);
+    if (idx >= 0) {
+      progress[idx] = { date: dateStr, page };
+    } else {
+      progress.push({ date: dateStr, page });
+      progress.sort((a, b) => a.date.localeCompare(b.date));
+    }
+    return progress;
+  };
+
   const updateCurrentPage = (bookId, newPage) => {
     const book = books.find(b => b.id === bookId);
     if (!book) return;
     const page = Math.min(parseInt(newPage) || 0, book.totalPages);
     const status = page >= book.totalPages ? 'read' : book.status;
-    updateBook(bookId, { currentPage: page, status });
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dailyProgress = recordProgress(book, todayStr, page);
+    updateBook(bookId, { currentPage: page, status, dailyProgress });
   };
 
   const updateYesterdayPage = (bookId, newPage) => {
     const book = books.find(b => b.id === bookId);
     if (!book) return;
     const page = Math.min(parseInt(newPage) || 0, book.totalPages);
-    const currentPage = Math.max(book.currentPage, parseInt(newPage) || 0);
-    updateBook(bookId, { yesterdayPage: page, currentPage });
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    const yStr = y.toISOString().split('T')[0];
+    const dailyProgress = recordProgress(book, yStr, page);
+    const currentPage = Math.max(book.currentPage, page);
+    updateBook(bookId, { currentPage, dailyProgress });
   };
 
   return {
