@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X, Info } from 'lucide-react';
+import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X, Info, CheckCircle } from 'lucide-react';
 import { useBookStorage } from './bookStorage.js';
 import { calculateDailyGoal, getTodaysTarget, getYesterdayPage } from './bookMetrics.js';
 
@@ -111,17 +111,23 @@ const ReadingTracker = () => {
 
   const BookCard = ({ book }) => {
     const progress = book.totalPages > 0 ? (book.currentPage / book.totalPages) * 100 : 0;
-    
+    const cardColor =
+      book.status === 'reading'
+        ? 'bg-blue-50 border-blue-200'
+        : book.status === 'want-to-read'
+        ? 'bg-gray-50 border-gray-200'
+        : 'bg-green-50 border-green-200';
+
     return (
       <div
-        className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
+        className={`rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer border ${cardColor}`}
         onClick={() => {
           setSelectedBook(book);
           setCurrentView('detail');
         }}
       >
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-gray-800 line-clamp-2">{book.title}</h3>
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="font-semibold text-gray-800 line-clamp-2 flex-1 pr-2">{book.title}</h3>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -132,26 +138,30 @@ const ReadingTracker = () => {
             <X size={16} />
           </button>
         </div>
-        
+
         <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>{book.currentPage} / {book.totalPages} pages</span>
-            <span>{Math.round(progress)}%</span>
+          <div className="flex items-center justify-between text-sm text-gray-700">
+            <div className="flex items-center gap-1">
+              <TrendingUp className="text-green-600" size={16} />
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <span className="text-xs">{book.currentPage}/{book.totalPages} pages</span>
           </div>
-          
+
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            <div
+              className="bg-green-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          
+
           {book.status === 'reading' && (
-            <div className="text-sm text-green-600 font-medium">
-              Target today: Page {getTodaysTarget(book)}
+            <div className="flex items-center gap-1 text-sm text-blue-700 font-medium">
+              <Target className="text-blue-600" size={16} />
+              <span>Up to page {getTodaysTarget(book)}</span>
             </div>
           )}
-          
+
           {book.status === 'want-to-read' && (
             <button
               onClick={(e) => {
@@ -162,6 +172,13 @@ const ReadingTracker = () => {
             >
               Start Reading
             </button>
+          )}
+
+          {book.status === 'read' && (
+            <div className="flex items-center gap-1 text-green-700 text-sm font-medium">
+              <CheckCircle className="text-green-600" size={16} />
+              <span>Completed</span>
+            </div>
           )}
         </div>
       </div>
