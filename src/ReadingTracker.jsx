@@ -1,115 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X } from 'lucide-react';
+import { useBookStorage } from './bookStorage.js';
+import { calculateDailyGoal, getTodaysTarget } from './bookMetrics.js';
 
 const ReadingTracker = () => {
-  const [books, setBooks] = useState([]);
+  const {
+    books,
+    addBook,
+    startReading,
+    updateCurrentPage,
+    updateYesterdayPage,
+    deleteBook
+  } = useBookStorage();
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedBook, setSelectedBook] = useState(null);
   const [showAddBook, setShowAddBook] = useState(false);
   const [editingYesterday, setEditingYesterday] = useState(false);
 
-  // Load saved books from localStorage on first render
-  useEffect(() => {
-    const stored = localStorage.getItem('reading-tracker-books');
-    if (stored) {
-      try {
-        setBooks(JSON.parse(stored));
-      } catch {
-        // ignore parsing errors and start fresh
-        setBooks([]);
-      }
-    }
-  }, []);
-
-  // Persist books whenever they change
-  useEffect(() => {
-    localStorage.setItem('reading-tracker-books', JSON.stringify(books));
-  }, [books]);
-
-  const addBook = (title, totalPages, targetDays) => {
-    const newBook = {
-      id: Date.now(),
-      title,
-      totalPages: parseInt(totalPages),
-      targetDays: parseInt(targetDays),
-      currentPage: 0,
-      yesterdayPage: 0,
-      status: 'want-to-read',
-      startDate: null,
-      targetDate: null,
-      dailyProgress: []
-    };
-    setBooks([...books, newBook]);
-    setShowAddBook(false);
-  };
-
-  const startReading = (bookId) => {
-    const today = new Date();
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + books.find(b => b.id === bookId).targetDays);
-    
-    setBooks(books.map(book => 
-      book.id === bookId 
-        ? { 
-            ...book, 
-            status: 'reading',
-            startDate: today.toISOString().split('T')[0],
-            targetDate: targetDate.toISOString().split('T')[0]
-          }
-        : book
-    ));
-  };
-
-  const calculateDailyGoal = (book) => {
-    if (book.status !== 'reading' || !book.targetDate) return 0;
-    
-    const today = new Date();
-    const target = new Date(book.targetDate);
-    const daysRemaining = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-    
-    if (daysRemaining <= 0) return book.totalPages - book.yesterdayPage;
-    
-    const pagesRemaining = book.totalPages - book.yesterdayPage;
-    return Math.ceil(pagesRemaining / daysRemaining);
-  };
-
-  const getTodaysTarget = (book) => {
-    const dailyGoal = calculateDailyGoal(book);
-    return Math.min(book.yesterdayPage + dailyGoal, book.totalPages);
-  };
-
-  const updateCurrentPage = (bookId, newPage) => {
-    setBooks(books.map(book => 
-      book.id === bookId 
-        ? { 
-            ...book, 
-            currentPage: Math.min(parseInt(newPage) || 0, book.totalPages),
-            status: parseInt(newPage) >= book.totalPages ? 'read' : book.status
-          }
-        : book
-    ));
-  };
-
-  const updateYesterdayPage = (bookId, newPage) => {
-    setBooks(books.map(book => 
-      book.id === bookId 
-        ? { 
-            ...book, 
-            yesterdayPage: Math.min(parseInt(newPage) || 0, book.totalPages),
-            currentPage: Math.max(book.currentPage, parseInt(newPage) || 0)
-          }
-        : book
-    ));
-    setEditingYesterday(false);
-  };
-
-  const deleteBook = (bookId) => {
-    setBooks(books.filter(book => book.id !== bookId));
-    if (selectedBook && selectedBook.id === bookId) {
-      setCurrentView('dashboard');
-      setSelectedBook(null);
-    }
-  };
 
   const AddBookForm = () => {
     const [title, setTitle] = useState('');
@@ -122,6 +29,7 @@ const ReadingTracker = () => {
         setTitle('');
         setTotalPages('');
         setTargetDays('');
+        setShowAddBook(false);
       }
     };
 
@@ -389,7 +297,10 @@ const ReadingTracker = () => {
                     max={book.totalPages}
                   />
                   <button
-                    onClick={() => updateYesterdayPage(book.id, tempYesterdayPage)}
+                    onClick={() => {
+                      updateYesterdayPage(book.id, tempYesterdayPage);
+                      setEditingYesterday(false);
+                    }}
                     className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
                   >
                     <Save size={16} />
