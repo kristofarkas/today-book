@@ -136,6 +136,13 @@ export function useBookStorage() {
     });
   };
 
+  const deleteReadingSession = (bookId, sessionId) => {
+    const book = books.find(b => b.id === bookId);
+    if (!book) return;
+    const sessions = (book.readingSessions || []).filter(s => s.id !== sessionId);
+    updateBook(bookId, { readingSessions: sessions });
+  };
+
   return {
     books,
     addBook,
@@ -145,7 +152,8 @@ export function useBookStorage() {
     updateCurrentPage,
     updateYesterdayPage,
     deleteBook,
-    updateTitle
+    updateTitle,
+    deleteReadingSession
   };
 }
 

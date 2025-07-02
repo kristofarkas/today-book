@@ -13,7 +13,8 @@ const ReadingTracker = () => {
     updateCurrentPage,
     updateYesterdayPage,
     deleteBook,
-    updateTitle
+    updateTitle,
+    deleteReadingSession
   } = useBookStorage();
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedBook, setSelectedBook] = useState(null);
@@ -236,15 +237,15 @@ const ReadingTracker = () => {
     const daysRemaining = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
 
     const completedSessions = sessions.filter(s => s.endTime);
-    const averageSpeed = completedSessions.length > 0
-      ? (
-          completedSessions.reduce((acc, s) => {
-            const pages = (s.endPage - s.startPage);
-            const minutes = (s.endTime - s.startTime) / 60000;
-            return acc + (minutes > 0 ? pages / minutes : 0);
-          }, 0) / completedSessions.length
-        ).toFixed(2)
-      : '0';
+    const sessionsWithPages = completedSessions.filter(s => (s.endPage - s.startPage) > 0);
+    const averageSpeed = sessionsWithPages.length > 0
+      ? sessionsWithPages.reduce((acc, s) => {
+          const pages = s.endPage - s.startPage;
+          const minutes = (s.endTime - s.startTime) / 60000;
+          return acc + (minutes > 0 ? pages / minutes : 0);
+        }, 0) / sessionsWithPages.length
+      : 0;
+    const estimatedMinutes = averageSpeed > 0 ? Math.ceil(remainingToday / averageSpeed) : 0;
 
     const formatDuration = (ms) => {
       const m = Math.floor(ms / 60000);
@@ -306,7 +307,12 @@ const ReadingTracker = () => {
               <h3 className="font-semibold text-blue-800">Today's Goal</h3>
             </div>
             <p className="text-xl font-bold text-blue-600">Read up to page {todaysTarget}</p>
-            <p className="text-sm text-blue-700">That's {Math.max(0, todaysTarget - book.currentPage)} more pages today</p>
+            <p className="text-sm text-blue-700">
+              That's {remainingToday} more pages today
+              {averageSpeed > 0 && remainingToday > 0 && (
+                <> (around {estimatedMinutes} minutes)</>
+              )}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -490,6 +496,7 @@ const ReadingTracker = () => {
                     <th className="px-2 py-1 text-right">Duration</th>
                     <th className="px-2 py-1 text-right">Pages</th>
                     <th className="px-2 py-1 text-right">Speed</th>
+                    <th className="px-2 py-1" />
                   </tr>
                 </thead>
                 <tbody>
@@ -505,13 +512,23 @@ const ReadingTracker = () => {
                         <td className="px-2 py-1 text-right">{formatDuration(duration)}</td>
                         <td className="px-2 py-1 text-right">{pages}</td>
                         <td className="px-2 py-1 text-right">{speed.toFixed(2)}</td>
+                        <td className="px-2 py-1 text-center">
+                          <button
+                            onClick={() => deleteReadingSession(book.id, s.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X size={14} />
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
-            <p className="text-sm text-gray-700 mt-2">Average speed: {averageSpeed} pages/min</p>
+            <p className="text-sm text-gray-700 mt-2">
+              Average speed: {averageSpeed.toFixed(2)} pages/min
+            </p>
           </div>
         )}
       </div>
