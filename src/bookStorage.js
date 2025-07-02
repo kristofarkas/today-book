@@ -30,7 +30,8 @@ export function useBookStorage() {
       status: 'want-to-read',
       startDate: null,
       targetDate: null,
-      dailyProgress: []
+      dailyProgress: [],
+      readingSessions: []
     };
     setBooks(bks => [...bks, newBook]);
   };
@@ -95,10 +96,52 @@ export function useBookStorage() {
     updateBook(bookId, { currentPage, dailyProgress });
   };
 
+  const startReadingSession = (bookId) => {
+    const book = books.find(b => b.id === bookId);
+    if (!book) return;
+    const sessions = book.readingSessions ? [...book.readingSessions] : [];
+    if (sessions.some(s => !s.endTime)) return; // already running
+    sessions.push({
+      id: Date.now(),
+      startTime: Date.now(),
+      startPage: book.currentPage,
+      endTime: null,
+      endPage: null
+    });
+    updateBook(bookId, { readingSessions: sessions });
+  };
+
+  const endReadingSession = (bookId, endPage) => {
+    const book = books.find(b => b.id === bookId);
+    if (!book) return;
+    const sessions = book.readingSessions ? [...book.readingSessions] : [];
+    const idx = sessions.findIndex(s => !s.endTime);
+    if (idx === -1) return;
+    const session = sessions[idx];
+    const page = Math.min(parseInt(endPage) || book.currentPage, book.totalPages);
+    const endTime = Date.now();
+    session.endTime = endTime;
+    session.endPage = page;
+    sessions[idx] = session;
+
+    const status = page >= book.totalPages ? 'read' : book.status;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dailyProgress = recordProgress(book, todayStr, page);
+
+    updateBook(bookId, {
+      currentPage: page,
+      status,
+      dailyProgress,
+      readingSessions: sessions
+    });
+  };
+
   return {
     books,
     addBook,
     startReading,
+    startReadingSession,
+    endReadingSession,
     updateCurrentPage,
     updateYesterdayPage,
     deleteBook,
