@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X, Info, CheckCircle } from 'lucide-react';
+import { BookOpen, Plus, Calendar, Target, TrendingUp, Edit3, Save, X, Info, CheckCircle, Play, StopCircle, Clock } from 'lucide-react';
 import { useBookStorage } from './bookStorage.js';
 import { calculateDailyGoal, getTodaysTarget, getYesterdayPage } from './bookMetrics.js';
 
@@ -8,6 +8,8 @@ const ReadingTracker = () => {
     books,
     addBook,
     startReading,
+    startReadingSession,
+    endReadingSession,
     updateCurrentPage,
     updateYesterdayPage,
     deleteBook,
@@ -192,6 +194,22 @@ const ReadingTracker = () => {
     const [editingTitle, setEditingTitle] = useState(false);
     const [tempTitle, setTempTitle] = useState(book.title);
     const [showYesterdayInfo, setShowYesterdayInfo] = useState(false);
+    const sessions = book.readingSessions || [];
+    const activeSession = sessions.find(s => !s.endTime);
+    const [elapsed, setElapsed] = useState(0);
+
+
+    useEffect(() => {
+      if (activeSession) {
+        setElapsed(Date.now() - activeSession.startTime);
+        const i = setInterval(() => {
+          setElapsed(Date.now() - activeSession.startTime);
+        }, 1000);
+        return () => clearInterval(i);
+      } else {
+        setElapsed(0);
+      }
+    }, [activeSession]);
     
     // Update temp values when book data changes
     useEffect(() => {
@@ -216,6 +234,23 @@ const ReadingTracker = () => {
     const today = new Date();
     const target = new Date(book.targetDate);
     const daysRemaining = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+
+    const completedSessions = sessions.filter(s => s.endTime);
+    const averageSpeed = completedSessions.length > 0
+      ? (
+          completedSessions.reduce((acc, s) => {
+            const pages = (s.endPage - s.startPage);
+            const minutes = (s.endTime - s.startTime) / 60000;
+            return acc + (minutes > 0 ? pages / minutes : 0);
+          }, 0) / completedSessions.length
+        ).toFixed(2)
+      : '0';
+
+    const formatDuration = (ms) => {
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    };
     
     return (
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
@@ -310,15 +345,30 @@ const ReadingTracker = () => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">Current Page</label>
-                <button
-                  onClick={() => setEditingCurrentPage(!editingCurrentPage)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  <Edit3 size={16} />
-                </button>
+                <div className="flex items-center gap-2">
+                  {activeSession && (
+                    <span className="flex items-center gap-1 text-yellow-700 text-sm">
+                      <Clock size={16} /> {formatDuration(elapsed)}
+                    </span>
+                  )}
+                  {!activeSession && (
+                    <button
+                      onClick={() => startReadingSession(book.id)}
+                      className="text-yellow-600 hover:text-yellow-800"
+                    >
+                      <Play size={16} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setEditingCurrentPage(!editingCurrentPage)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Edit3 size={16} />
+                  </button>
+                </div>
               </div>
-              
-              {editingCurrentPage ? (
+
+              {editingCurrentPage || activeSession ? (
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -328,15 +378,27 @@ const ReadingTracker = () => {
                     min="0"
                     max={book.totalPages}
                   />
-                  <button
-                    onClick={() => {
-                      updateCurrentPage(book.id, tempCurrentPageInput);
-                      setEditingCurrentPage(false);
-                    }}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                  >
-                    <Save size={16} />
-                  </button>
+                  {activeSession ? (
+                    <button
+                      onClick={() => {
+                        endReadingSession(book.id, tempCurrentPageInput);
+                        setEditingCurrentPage(false);
+                      }}
+                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors flex items-center gap-1"
+                    >
+                      <StopCircle size={16} /> End
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        updateCurrentPage(book.id, tempCurrentPageInput);
+                        setEditingCurrentPage(false);
+                      }}
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      <Save size={16} />
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="p-2 bg-gray-100 rounded-md">
@@ -398,7 +460,8 @@ const ReadingTracker = () => {
             </div>
           </div>
         </div>
-        
+
+
         {book.targetDate && (
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -411,6 +474,44 @@ const ReadingTracker = () => {
             <p className="text-sm text-gray-600">
               Daily goal: {dailyGoal} pages per day
             </p>
+          </div>
+        )}
+
+        {completedSessions.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+              <Clock className="text-gray-600" size={20} /> Past Sessions
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-gray-600">
+                    <th className="px-2 py-1 text-left">Date</th>
+                    <th className="px-2 py-1 text-right">Duration</th>
+                    <th className="px-2 py-1 text-right">Pages</th>
+                    <th className="px-2 py-1 text-right">Speed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {completedSessions.map(s => {
+                    const duration = s.endTime - s.startTime;
+                    const pages = s.endPage - s.startPage;
+                    const speed = pages / (duration / 60000);
+                    return (
+                      <tr key={s.id} className="border-t">
+                        <td className="px-2 py-1">
+                          {new Date(s.startTime).toLocaleDateString()} {new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="px-2 py-1 text-right">{formatDuration(duration)}</td>
+                        <td className="px-2 py-1 text-right">{pages}</td>
+                        <td className="px-2 py-1 text-right">{speed.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-sm text-gray-700 mt-2">Average speed: {averageSpeed} pages/min</p>
           </div>
         )}
       </div>
