@@ -242,10 +242,10 @@ const ReadingTracker = () => {
       ? sessionsWithPages.reduce((acc, s) => {
           const pages = s.endPage - s.startPage;
           const minutes = (s.endTime - s.startTime) / 60000;
-          return acc + (minutes > 0 ? pages / minutes : 0);
+          return acc + (pages > 0 ? minutes / pages : 0);
         }, 0) / sessionsWithPages.length
       : 0;
-    const estimatedMinutes = averageSpeed > 0 ? Math.ceil(remainingToday / averageSpeed) : 0;
+    const estimatedMinutes = averageSpeed > 0 ? Math.ceil(remainingToday * averageSpeed) : 0;
 
     const formatDuration = (ms) => {
       const m = Math.floor(ms / 60000);
@@ -322,7 +322,7 @@ const ReadingTracker = () => {
                 <h3 className="font-semibold text-green-800">Overall Progress</h3>
               </div>
               <p className="text-xl font-bold text-green-600">{Math.round(Math.min(100, progress))}%</p>
-              <p className="text-sm text-green-700 mb-2">{book.currentPage} of {book.totalPages} pages</p>
+                <p className="text-sm text-green-700 mb-2">Finished {book.currentPage} of {book.totalPages} pages</p>
               <div className="w-full bg-green-200 h-2 rounded-full">
                 <div
                   className="bg-green-600 h-2 rounded-full"
@@ -350,7 +350,7 @@ const ReadingTracker = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">Current Page</label>
+                <label className="block text-sm font-medium text-gray-700">Last Page Finished</label>
                 <div className="flex items-center gap-2">
                   {activeSession && (
                     <span className="flex items-center gap-1 text-yellow-700 text-sm">
@@ -381,6 +381,7 @@ const ReadingTracker = () => {
                     value={tempCurrentPageInput}
                     onChange={(e) => setTempCurrentPageInput(e.target.value)}
                     className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="last page finished"
                     min="0"
                     max={book.totalPages}
                   />
@@ -407,9 +408,9 @@ const ReadingTracker = () => {
                   )}
                 </div>
               ) : (
-                <div className="p-2 bg-gray-100 rounded-md">
-                  <span className="text-gray-800">Page {book.currentPage}</span>
-                </div>
+                  <div className="p-2 bg-gray-100 rounded-md">
+                    <span className="text-gray-800">Finished Page {book.currentPage}</span>
+                  </div>
               )}
             </div>
             <div>
@@ -495,7 +496,7 @@ const ReadingTracker = () => {
                     <th className="px-2 py-1 text-left">Date</th>
                     <th className="px-2 py-1 text-right">Duration</th>
                     <th className="px-2 py-1 text-right">Pages</th>
-                    <th className="px-2 py-1 text-right">Speed</th>
+                    <th className="px-2 py-1 text-right">Pace (min/page)</th>
                     <th className="px-2 py-1" />
                   </tr>
                 </thead>
@@ -503,7 +504,7 @@ const ReadingTracker = () => {
                   {completedSessions.map(s => {
                     const duration = s.endTime - s.startTime;
                     const pages = s.endPage - s.startPage;
-                    const speed = pages / (duration / 60000);
+                    const pace = pages > 0 ? (duration / 60000) / pages : 0;
                     return (
                       <tr key={s.id} className="border-t">
                         <td className="px-2 py-1">
@@ -511,7 +512,7 @@ const ReadingTracker = () => {
                         </td>
                         <td className="px-2 py-1 text-right">{formatDuration(duration)}</td>
                         <td className="px-2 py-1 text-right">{pages}</td>
-                        <td className="px-2 py-1 text-right">{speed.toFixed(2)}</td>
+                        <td className="px-2 py-1 text-right">{pace.toFixed(2)}</td>
                         <td className="px-2 py-1 text-center">
                           <button
                             onClick={() => deleteReadingSession(book.id, s.id)}
@@ -527,7 +528,7 @@ const ReadingTracker = () => {
               </table>
             </div>
             <p className="text-sm text-gray-700 mt-2">
-              Average speed: {averageSpeed.toFixed(2)} pages/min
+              Average pace: {averageSpeed.toFixed(2)} min/page
             </p>
           </div>
         )}
