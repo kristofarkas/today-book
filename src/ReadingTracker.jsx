@@ -114,6 +114,7 @@ const ReadingTracker = () => {
 
   const BookCard = ({ book }) => {
     const progress = book.totalPages > 0 ? (book.currentPage / book.totalPages) * 100 : 0;
+    const todaysTarget = getTodaysTarget(book);
     const cardColor =
       book.status === 'reading'
         ? 'bg-blue-50 border-blue-200'
@@ -161,7 +162,7 @@ const ReadingTracker = () => {
           {book.status === 'reading' && (
             <div className="flex items-center gap-1 text-sm text-blue-700 font-medium">
               <Target className="text-blue-600" size={16} />
-              <span>Up to page {getTodaysTarget(book)}</span>
+              <span>{todaysTarget === book.totalPages ? 'Finish book' : `Up to page ${todaysTarget}`}</span>
             </div>
           )}
 
@@ -325,7 +326,9 @@ const ReadingTracker = () => {
               <Target className="text-blue-600" size={20} />
               <h3 className="font-semibold text-blue-800">Today's Goal</h3>
             </div>
-            <p className="text-xl font-bold text-blue-600">Read up to page {todaysTarget}</p>
+            <p className="text-xl font-bold text-blue-600">
+              {todaysTarget === book.totalPages ? 'Finish book' : `Read up to page ${todaysTarget}`}
+            </p>
             <p className="text-sm text-blue-700">
               That's {remainingToday} more pages today
               {averageSpeed > 0 && remainingToday > 0 && (
