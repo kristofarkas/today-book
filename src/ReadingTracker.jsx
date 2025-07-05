@@ -246,6 +246,16 @@ const ReadingTracker = () => {
         }, 0) / sessionsWithPages.length
       : 0;
     const estimatedMinutes = averageSpeed > 0 ? Math.ceil(remainingToday * averageSpeed) : 0;
+    const pagesInThirty = averageSpeed > 0 ? (30 / averageSpeed) : 0;
+
+    const formatMinutes = (mins) => {
+      if (mins >= 60) {
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return `${h} hour${h !== 1 ? 's' : ''}${m > 0 ? ` ${m} minutes` : ''}`;
+      }
+      return `${mins} minutes`;
+    };
 
     const formatDuration = (ms) => {
       const m = Math.floor(ms / 60000);
@@ -319,7 +329,7 @@ const ReadingTracker = () => {
             <p className="text-sm text-blue-700">
               That's {remainingToday} more pages today
               {averageSpeed > 0 && remainingToday > 0 && (
-                <> (around {estimatedMinutes} minutes)</>
+                <> (around {formatMinutes(estimatedMinutes)})</>
               )}
             </p>
           </div>
@@ -538,6 +548,9 @@ const ReadingTracker = () => {
             </div>
             <p className="text-sm text-gray-700 mt-2">
               Average pace: {`${formatMinutesPerPage(averageSpeed)} / page`}
+              {averageSpeed > 0 && (
+                <> ({pagesInThirty.toFixed(1)} pages in 30 minutes)</>
+              )}
             </p>
           </div>
         )}
