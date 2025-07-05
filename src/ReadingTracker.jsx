@@ -257,9 +257,9 @@ const ReadingTracker = () => {
       const m = Math.floor(minutes);
       let s = Math.round((minutes - m) * 60);
       if (s === 60) {
-        return `${m + 1}:00`;
+        return `${m + 1}’00”`;
       }
-      return `${m}:${s.toString().padStart(2, '0')}`;
+      return `${m}’${s.toString().padStart(2, '0')}”`;
     };
     
     return (
@@ -505,7 +505,7 @@ const ReadingTracker = () => {
                     <th className="px-2 py-1 text-left">Date</th>
                     <th className="px-2 py-1 text-right">Duration</th>
                     <th className="px-2 py-1 text-right">Pages</th>
-                    <th className="px-2 py-1 text-right">Pace (min:sec/page)</th>
+                    <th className="px-2 py-1 text-right">Pace</th>
                     <th className="px-2 py-1" />
                   </tr>
                 </thead>
@@ -521,7 +521,7 @@ const ReadingTracker = () => {
                         </td>
                         <td className="px-2 py-1 text-right">{formatDuration(duration)}</td>
                         <td className="px-2 py-1 text-right">{pages}</td>
-                        <td className="px-2 py-1 text-right">{formatMinutesPerPage(pace)}</td>
+                        <td className="px-2 py-1 text-right">{`${formatMinutesPerPage(pace)} / page`}</td>
                         <td className="px-2 py-1 text-center">
                           <button
                             onClick={() => deleteReadingSession(book.id, s.id)}
@@ -537,7 +537,7 @@ const ReadingTracker = () => {
               </table>
             </div>
             <p className="text-sm text-gray-700 mt-2">
-              Average pace: {formatMinutesPerPage(averageSpeed)} per page
+              Average pace: {`${formatMinutesPerPage(averageSpeed)} / page`}
             </p>
           </div>
         )}
